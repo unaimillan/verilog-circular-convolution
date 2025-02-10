@@ -26,9 +26,9 @@
 # Notes:
 #
 # 1) The default values for assignments are stored in the file:
-#		de10lite-circular-convolution_assignment_defaults.qdf
+#        de10lite-circular-convolution_assignment_defaults.qdf
 #    If this file doesn't exist, see file:
-#		assignment_defaults.qdf
+#        assignment_defaults.qdf
 #
 # 2) Intel recommends that you do not modify this file. This
 #    file is updated automatically by the Quartus Prime software
