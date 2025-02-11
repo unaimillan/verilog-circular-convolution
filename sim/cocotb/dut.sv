@@ -2,8 +2,8 @@
 
 module dut
 #(
-    parameter XLEN  = 8,
-              WIDTH = 16
+    parameter XLEN  = 16,
+              WIDTH = 128
 )
 (
     input                            clk,
