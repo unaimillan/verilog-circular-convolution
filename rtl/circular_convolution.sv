@@ -19,12 +19,13 @@ module circular_convolution #(
     // Definitions
     //-----------------------------------------------------------------------------
 
-    enum logic[2:0] { 
+    typedef enum logic[2:0] { 
         ST_IDLE     = 3'd0,
         ST_LOAD_ARG = 3'd1,
         ST_COMPUTE  = 3'd2
         // ST_FINISH   = 3'd3
-    } state, next_state;
+    } state_t;
+    state_t state, next_state;
 
     localparam PTR_W   = $clog2 (WINDOW_SIZE);
     localparam MAX_PTR = PTR_W' (WINDOW_SIZE - 1);
@@ -56,6 +57,7 @@ module circular_convolution #(
                 if (finished)
                     next_state = ST_IDLE;
             end
+            // default: $error("illegal state %d", state);
         endcase
     end
 
@@ -89,28 +91,32 @@ module circular_convolution #(
 
     //-----------------------------------------------------------------------------
 
+    state_t              state_stage;
     logic [PTR_W - 1: 0] result_ptr_stage;
     logic                finished_stage;
     
-    localparam SUM_ACC_W = 16;
-    localparam SLICE_SIZE = WINDOW_SIZE / SUM_ACC_W;
+    localparam SUM_SLICE_CNT = 16;
+    localparam SUM_SLICE_SIZE = WINDOW_SIZE / SUM_SLICE_CNT;
 
-    logic                [QLEN-1:0] result;
-    logic [SUM_ACC_W-1:0][QLEN-1:0] sum_stage_r, sum_stage;
+    logic                    [QLEN-1:0] result;
+    logic [SUM_SLICE_CNT-1:0][QLEN-1:0] sum_stage_r, sum_stage;
 
     // Immidiate check that window size is be greater or equal 
     // to the accumulator size
-    // assert (SUM_ACC_W <= WINDOW_SIZE);
-    // assert (WINDOW_SIZE % SUM_ACC_W == 0);
+    // assert (SUM_SLICE_CNT <= WINDOW_SIZE);
+    // assert (WINDOW_SIZE % SUM_SLICE_CNT == 0);
+
+    logic [2*QLEN-1:0] wide_mult;
 
     always_comb
     begin
-        for (int i = 0; i < SUM_ACC_W; i ++)
+        for (int i = 0; i < SUM_SLICE_CNT; i ++)
         begin
             sum_stage[i] = '0;
-            for (int j = 0; j < SLICE_SIZE; j += SUM_ACC_W)
+            for (int j = 0; j < SUM_SLICE_SIZE; j += SUM_SLICE_CNT)
             begin
-                sum_stage[i] += (weights[j] * shifted_data[j]);
+                wide_mult = (2*QLEN)' (weights[j] * shifted_data[j]);
+                sum_stage[i] += wide_mult[(2*QLEN-4) -: QLEN];
             end
         end
     end
@@ -123,7 +129,7 @@ module circular_convolution #(
     always_comb
     begin
         result = '0;
-        for (int i = 0; i < SUM_ACC_W; i ++)
+        for (int i = 0; i < SUM_SLICE_CNT; i ++)
         begin
             result += sum_stage_r[i];
         end
@@ -133,11 +139,13 @@ module circular_convolution #(
     begin
         if (rst)
         begin
+            state_stage      <= '0;
             result_ptr_stage <= '0;
             finished_stage   <= '0;
         end
         else
         begin
+            state_stage      <= state;
             result_ptr_stage <= result_ptr;
             finished_stage   <= finished;
         end
@@ -145,7 +153,7 @@ module circular_convolution #(
 
     always_ff @ (posedge clk)
     begin
-        if (state == ST_COMPUTE)
+        if (state_stage == ST_COMPUTE)
             out_data[result_ptr_stage] <= result;
     end
 
