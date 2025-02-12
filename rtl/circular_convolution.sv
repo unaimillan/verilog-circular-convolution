@@ -1,5 +1,6 @@
 module circular_convolution #(
     parameter QLEN        = 16,
+              FRAC_SIZE   = 12,
               WINDOW_SIZE = 16
 )
 (
@@ -106,7 +107,8 @@ module circular_convolution #(
     // assert (SUM_SLICE_CNT <= WINDOW_SIZE);
     // assert (WINDOW_SIZE % SUM_SLICE_CNT == 0);
 
-    logic [2*QLEN-1:0] wide_mult;
+    logic signed [2*QLEN-1:0] wide_mult;
+    logic signed [QLEN-1:0] sweight, sdata;
 
     always_comb
     begin
@@ -115,8 +117,10 @@ module circular_convolution #(
             sum_stage[i] = '0;
             for (int j = 0; j < SUM_SLICE_SIZE; j += SUM_SLICE_CNT)
             begin
-                wide_mult = (2*QLEN)' (weights[j] * shifted_data[j]);
-                sum_stage[i] += wide_mult[(2*QLEN-4) -: QLEN];
+                sweight = $signed (weights[j]);
+                sdata   = $signed (shifted_data[j]);
+                wide_mult = sweight * sdata;
+                sum_stage[i] += wide_mult[FRAC_SIZE +: QLEN];
             end
         end
     end
@@ -139,7 +143,7 @@ module circular_convolution #(
     begin
         if (rst)
         begin
-            state_stage      <= '0;
+            state_stage      <= ST_IDLE;
             result_ptr_stage <= '0;
             finished_stage   <= '0;
         end
