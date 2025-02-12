@@ -7,7 +7,7 @@ def test_with_cocotb():
     sim = os.getenv("SIM", "icarus")
     hdl_toplevel_lang = os.getenv("HDL_TOPLEVEL_LANG", "verilog")
 
-    proj_path = Path(__file__).resolve().parent / '../..'
+    proj_path = Path(__file__).resolve().parent / '../../..'
     print(f'Project path: {proj_path.absolute()}')
 
     verilog_sources = [
@@ -23,7 +23,7 @@ def test_with_cocotb():
     ]
 
     if hdl_toplevel_lang == "verilog":
-        verilog_sources.append(proj_path / "sim/fxp_tb/dut.sv")
+        verilog_sources.append(proj_path / "sim/cocotb/cc_tb/dut.sv")
     else:
         vhdl_sources.append(proj_path / "top.vhdl")
 
