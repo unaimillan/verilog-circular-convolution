@@ -19,7 +19,8 @@ if not cocotb.simulator.is_running():
 XLEN   = int(cocotb.top.XLEN.value)
 WINDOW_SIZE = int(cocotb.top.WIDTH.value)
 CHECKS_N = 5
-ND_KERNEL = np.asarray([0.01]*(WINDOW_SIZE//4) + [0.10]*(WINDOW_SIZE//2) + [0.01]*(WINDOW_SIZE//4))
+ND_KERNEL = np.asarray([1] * WINDOW_SIZE)
+# ND_KERNEL = np.asarray([0.01]*(WINDOW_SIZE//4) + [0.10]*(WINDOW_SIZE//2) + [0.01]*(WINDOW_SIZE//4))
 # ND_KERNEL = np.concat([np.zeros((WINDOW_SIZE//4, )), np.ones((WINDOW_SIZE//2,)), np.zeros((WINDOW_SIZE//4,))])
 # ND_KERNEL = np.random.normal(scale=1, size=WINDOW_SIZE)
 
@@ -46,7 +47,7 @@ def convert_logic_to_float(array: BinaryValue) -> np.ndarray:
     ])
 
 
-def generate_sins() -> Generator[np.ndarray[np.float64]]:
+def generate_sins(scale: float) -> Generator[np.ndarray[np.float64]]:
     x_start = 0
     x_step = 50
     while True:
@@ -56,21 +57,24 @@ def generate_sins() -> Generator[np.ndarray[np.float64]]:
         y_range = np.max(true_y) - np.min(true_y)
         y = true_y + np.random.normal(scale=y_range/10, size=WINDOW_SIZE) + np.sin(x*1.33)
         
-        yield y
+        yield y * scale
         x_start += x_step
 
 
-def generate_random() -> Generator[np.ndarray[np.float64]]:
+def generate_random(scale: float) -> Generator[np.ndarray[np.float64]]:
     while True:
-        y = np.random.normal(scale=1, size=WINDOW_SIZE)
+        y = np.random.normal(scale=scale, size=WINDOW_SIZE)
         yield y
 
+def generate_constant(scale: float) -> Generator[np.ndarray[np.float64]]:
+    while True:
+        yield np.asarray([scale] * WINDOW_SIZE)
 
 async def drive_valid_data(clk: SimHandleBase, valid: SimHandleBase, data: SimHandleBase):
-    generate_func = generate_sins
-    fix_delay = WINDOW_SIZE + 10
+    generate_func = generate_constant
+    fix_delay = WINDOW_SIZE + 10 
 
-    for i, ndsample in enumerate(generate_func()):
+    for i, ndsample in enumerate(generate_func(scale=2**-4)):
 
         valid.value = 1
         data.value = convert_float_to_logic(ndsample)
