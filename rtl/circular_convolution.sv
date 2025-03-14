@@ -115,7 +115,7 @@ module circular_convolution #(
         for (int i = 0; i < SUM_SLICE_CNT; i ++)
         begin
             sum_stage[i] = '0;
-            for (int j = 0; j < SUM_SLICE_SIZE; j += SUM_SLICE_CNT)
+            for (int j = 0; j < SUM_SLICE_SIZE; j += 1)
             begin
                 sweight = $signed (weights[j]);
                 sdata   = $signed (shifted_data[j]);
