@@ -11,6 +11,7 @@ from cocotb.types import LogicArray, Range
 from cocotb.binary import BinaryValue
 import fxpmath
 import numpy as np
+from irreader import read_ir
 
 
 if not cocotb.simulator.is_running():
@@ -19,7 +20,7 @@ if not cocotb.simulator.is_running():
 XLEN   = int(cocotb.top.XLEN.value)
 WINDOW_SIZE = int(cocotb.top.WIDTH.value)
 CHECKS_N = 5
-ND_KERNEL = np.asarray([1] * WINDOW_SIZE)
+ND_KERNEL = read_ir()[:WINDOW_SIZE]
 # ND_KERNEL = np.asarray([0.01]*(WINDOW_SIZE//4) + [0.10]*(WINDOW_SIZE//2) + [0.01]*(WINDOW_SIZE//4))
 # ND_KERNEL = np.concat([np.zeros((WINDOW_SIZE//4, )), np.ones((WINDOW_SIZE//2,)), np.zeros((WINDOW_SIZE//4,))])
 # ND_KERNEL = np.random.normal(scale=1, size=WINDOW_SIZE)
