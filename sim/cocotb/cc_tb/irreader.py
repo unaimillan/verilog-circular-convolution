@@ -9,6 +9,9 @@ def _read_ir(path: str) -> np.ndarray:
      sample_rate, data = wv.read(path)
 
      data = data.astype(np.float32) / np.iinfo(data.dtype).max
+
+     assert np.max(np.abs(data)) < 1 
+
      return data
 
 def read_ir(shift: int = 0) -> np.ndarray:
