@@ -117,8 +117,8 @@ module circular_convolution #(
             sum_stage[i] = '0;
             for (int j = 0; j < SUM_SLICE_SIZE; j += 1)
             begin
-                sweight = $signed (weights[j]);
-                sdata   = $signed (shifted_data[j]);
+                sweight = $signed (weights        [j + SUM_SLICE_SIZE*i]);
+                sdata   = $signed (shifted_data   [j + SUM_SLICE_SIZE*i]);
                 wide_mult = sweight * sdata;
                 sum_stage[i] += wide_mult[FRAC_SIZE +: QLEN];
             end
